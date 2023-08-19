@@ -1,12 +1,13 @@
+const MINE_RATE = 1000; //1s = 1000ms
 const INITIAL_DIFFICULTY = 2;
 
 const GENESIS_DATA = {
-    timestamp: "11/10/2001",
-    prevHash: '0x00000000',
-    hash: '0x00000011',
+    timestamp: 1,
+    prevHash: "0x000",
+    hash: "0x123",
     difficulty: INITIAL_DIFFICULTY,
     nonce: 0,
-    data: ['DragonBall', 'One piece', 'Naruto', 'Bleach']
-}
+    data: [],
+};
 
-module.exports = { GENESIS_DATA };
+module.exports = { GENESIS_DATA, MINE_RATE };

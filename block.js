@@ -1,4 +1,5 @@
-const { GENESIS_DATA } = require("./config");
+const hexToBinary = require("hex-to-binary");
+const { GENESIS_DATA, MINE_RATE } = require("./config");
 const cryptoHash = require("./crypto-hash");
 
 class Block {
@@ -10,22 +11,28 @@ class Block {
         this.nonce = nonce;
         this.difficulty = difficulty;
     }
-
+    
     static genesis() {
         return new this(GENESIS_DATA);
     }
 
     static mineBlock({ prevBlock, data }) {
         let hash, timestamp;
+
         const prevHash = prevBlock.hash;
-        const { difficulty } = prevBlock;
+        let { difficulty } = prevBlock;
 
         let nonce = 0;
+
         do {
             nonce++;
-            timestamp = Date.now();
+            timestamp = Date.now(); //00cdef ,00
+            difficulty = Block.adjustDifficulty({
+                originalBlock: prevBlock,
+                timestamp,
+            });
             hash = cryptoHash(timestamp, prevHash, data, nonce, difficulty);
-        } while (hash.substring(0, difficulty) !== "0".repeat(difficulty));
+        } while (hexToBinary(hash).substring(0, difficulty) !== "0".repeat(difficulty));
 
         return new this({
             timestamp,
@@ -33,25 +40,30 @@ class Block {
             data,
             difficulty,
             nonce,
-            hash
+            hash,
         });
+    }
+
+    static adjustDifficulty({ originalBlock, timestamp }) {
+        const { difficulty } = originalBlock;
+        if (difficulty < 1) return 1;
+        const difference = timestamp - originalBlock.timestamp;
+        if (difference > MINE_RATE) return difficulty - 1;
+        return difficulty + 1;
     }
 }
 
-const genesisBlock = Block.genesis();
-const block_1 = new Block({
-    timestamp: "02/09/2022",
-    prevHash: "0xabc",
-    hash: "0xc12",
-    data: "Het Joshi",
+const block1 = new Block({
+    hash: "0xacb",
+    timestamp: "2/09/22",
+    prevHash: "0xc12",
+    data: "hello",
 });
-// const block_2 = new Block({timestamp: '03/10/2022', prevHash: '0xc12', hash: '0xb75', data: 'Brij Joshi'});
 
-// const result = Block.mineBlock({prevBlock: block_2, data: "Monkey D. Luffy"})
-// console.log(result);
-
+// const genesisBlock = Block.genesis();
 // console.log(genesisBlock);
-// console.log(block_1);
-// console.log(block_2);
 
+// const result = Block.mineBlock({ prevBlock: block1, data: "block2" });
+// console.log(result);
+// //console.log(block1);
 module.exports = Block;
